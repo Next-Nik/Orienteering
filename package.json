@@ -1,0 +1,8 @@
+{
+  "name": "life-os-orienteering",
+  "version": "1.0.0",
+  "description": "Life OS: Orienteering — conversational triage and routing tool",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0"
+  }
+}
