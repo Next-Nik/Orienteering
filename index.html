@@ -122,7 +122,7 @@
       background: var(--gold-bg);
       color: var(--gold);
       font-family: var(--serif-sc);
-      font-size: 13px;
+      font-size: 16px;
       font-weight: 600;
       letter-spacing: 0.16em;
       text-decoration: none;
@@ -267,7 +267,7 @@
       border-radius: 40px;
       padding: 14px 24px;
       font-family: var(--serif-sc);
-      font-size: 13px;
+      font-size: 16px;
       font-weight: 600;
       letter-spacing: 0.14em;
       cursor: pointer;
@@ -433,6 +433,86 @@
       line-height: 1.7;
     }
 
+
+    /* ── NAV BAR ── */
+    #nav-bar {
+      position: fixed;
+      bottom: 85px;
+      left: 0;
+      right: 0;
+      z-index: 99;
+      padding: 8px 20px;
+    }
+    .nav-bar-inner {
+      max-width: 640px;
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+    }
+    .nav-btn {
+      font-family: var(--serif);
+      font-size: 13px;
+      font-style: italic;
+      color: var(--text-ghost);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 0;
+      transition: color 0.2s;
+    }
+    .nav-btn:hover { color: var(--gold); }
+    .nav-btn-restart { margin-left: auto; }
+
+
+    /* ── SIGN-IN PROMPT ── */
+    .signin-prompt {
+      margin-top: 24px;
+      margin-bottom: 8px;
+    }
+
+    .signin-prompt-inner {
+      background: rgba(200,146,42,0.05);
+      border: 1.5px solid rgba(200,146,42,0.78);
+      border-radius: 14px;
+      padding: 28px 28px 24px;
+      text-align: center;
+    }
+
+    .signin-eyebrow {
+      font-family: var(--serif-sc);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .signin-body {
+      font-family: var(--serif);
+      font-size: 16px;
+      font-weight: 300;
+      color: var(--text-body);
+      line-height: 1.7;
+      margin-bottom: 24px;
+      max-width: 380px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .signin-cta {
+      display: inline-block;
+      margin-bottom: 14px;
+    }
+
+    .signin-skip {
+      font-family: var(--serif);
+      font-size: 13px;
+      font-style: italic;
+      color: var(--text-ghost);
+    }
+
     @media (max-width: 640px) {
       .container { padding: 36px 18px 130px; }
       .header h1 { font-size: 32px; }
@@ -450,13 +530,13 @@
   <header class="header">
     <img src="/logo.png" alt="Life OS" class="logo" />
     <h1><span class="header-prefix">Life OS: </span>Orienteering</h1>
-    <p class="header-sub">Let's figure out where you are.</p>
+    <p class="header-sub">Find your place in the larger picture.</p>
   </header>
 
   <!-- Entry screen -->
   <div id="welcome-screen">
     <div class="entry-card">
-      <p class="entry-body">A short conversation to understand where you are right now — and point you toward what might actually help. No scores. No assessment. Just a genuine look at what's going on.</p>
+      <p class="entry-body">A short conversation to understand where you actually are — and what you might need to show up more fully for what life is asking of you. No scores. No assessment. Just an honest look.</p>
       <button class="nk-btn" id="begin-btn">Begin</button>
     </div>
   </div>
@@ -487,20 +567,41 @@
   </div>
 </div>
 
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+  window.SUPABASE_URL      = "https://tphbpwzozkskytoichho.supabase.co";
+  window.SUPABASE_ANON_KEY = "sb_publishable_M00GF1FWV5tgKHqmyRCZag_kJjgBJn-";
+</script>
+<script>
+// ── SESSION (silent — no redirect) ───────────────────────────────────────────
+let currentUser = null;
+
+(async function checkSession() {
+  try {
+    const sb = window.supabase?.createClient(
+      window.SUPABASE_URL,
+      window.SUPABASE_ANON_KEY
+    );
+    if (!sb) return;
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.user) currentUser = session.user;
+  } catch {}
+})();
+
 // ── TOOL LINKS ───────────────────────────────────────────────────────────────
 const TOOL_LINKS = {
-  "Foundation":    { url: "https://nextus.world/life-os.html#foundation", text: "Begin →" },
-  "The Map":       { url: "/life-os.html#map",                        text: "Begin your map →" },
-  "Pulse":         { url: "https://life-os-pulse.vercel.app",         text: "Open Pulse →" },
+  "Foundation":    { url: "#",                                           text: "Begin →" },
+  "The Map":       { url: "/life-os.html#map",                           text: "Begin your map →" },
+  "Pulse":         { url: "https://life-os-pulse.vercel.app",            text: "Open Pulse →" },
   "Purpose Piece": { url: "https://life-os-purpose-piece-v2.vercel.app", text: "Find your Purpose Piece →" },
-  "Horizon Leap":  { url: "/work-with-nik.html",                      text: "Learn more →" },
+  "Horizon Leap":  { url: "/work-with-nik.html",                         text: "Learn more →" },
+  "NextUs":        { url: "https://nextus.world",                        text: "Explore the map →" },
 };
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let messages  = [];
-let isWaiting = false;
+let messages       = [];
+let messageHistory = []; // [{content, domEl}] for back nav
+let isWaiting      = false;
 
 // ── DOM ──────────────────────────────────────────────────────────────────────
 const welcomeScreen   = document.getElementById("welcome-screen");
@@ -528,6 +629,7 @@ async function startConversation() {
   welcomeScreen.style.display = "none";
   chatArea.style.display      = "flex";
   inputArea.style.display     = "";
+  showNavBar();
   showTyping();
 
   try {
@@ -546,8 +648,11 @@ function sendUserInput() {
   const text = userInput.value.trim();
   if (!text) return;
 
+  addUserMessage._lastEl = null;
   addUserMessage(text);
+  const lastUserEl = chatContainer.lastElementChild;
   messages.push({ role: "user", content: text });
+  messageHistory.push({ content: text, domEl: lastUserEl });
   userInput.value = "";
   userInput.style.height = "auto";
   disableInput();
@@ -577,6 +682,54 @@ async function callAPI(msgs) {
   return response.json();
 }
 
+// ── NAVIGATION ───────────────────────────────────────────────────────────────
+function showNavBar() {
+  if (document.getElementById("nav-bar")) return;
+  const bar = document.createElement("div");
+  bar.id = "nav-bar";
+  bar.innerHTML = `
+    <div class="nav-bar-inner">
+      <button class="nav-btn nav-btn-back" id="nav-back" style="opacity:0.35;cursor:default;" disabled>← Back</button>
+      <button class="nav-btn nav-btn-restart" id="nav-restart">Start again</button>
+    </div>
+  `;
+  inputArea.parentNode.insertBefore(bar, inputArea);
+  document.getElementById("nav-back").addEventListener("click", goBack);
+  document.getElementById("nav-restart").addEventListener("click", restartFn);
+}
+
+function setBackEnabled(enabled) {
+  const btn = document.getElementById("nav-back");
+  if (btn) {
+    btn.disabled = !enabled;
+    btn.style.opacity = enabled ? "1" : "0.35";
+    btn.style.cursor  = enabled ? "pointer" : "default";
+  }
+}
+
+function goBack() {
+  if (messageHistory.length < 2) return;
+  const lastAssistant = messageHistory.pop();
+  const lastUser      = messageHistory.pop();
+  if (lastAssistant?.domEl) lastAssistant.domEl.remove();
+  if (lastUser?.domEl)      lastUser.domEl.remove();
+  // Also pop from messages array
+  if (messages.length >= 2) messages = messages.slice(0, -2);
+  enableInput();
+  setBackEnabled(messageHistory.length >= 2);
+}
+
+function restartFn() {
+  messages       = [];
+  messageHistory = [];
+  chatContainer.innerHTML = "";
+  chatArea.style.display      = "none";
+  inputArea.style.display     = "none";
+  welcomeScreen.style.display = "";
+  const bar = document.getElementById("nav-bar");
+  if (bar) bar.remove();
+}
+
 // ── RENDER ────────────────────────────────────────────────────────────────────
 function addAssistantMessage(text) {
   const trimmed = text.trim();
@@ -602,6 +755,8 @@ function addAssistantMessage(text) {
     .join("");
   chatContainer.appendChild(div);
   messages.push({ role: "assistant", content: text });
+  messageHistory.push({ content: text, domEl: div });
+  setBackEnabled(messageHistory.length >= 2);
   scrollToBottom();
 }
 
@@ -645,6 +800,7 @@ function renderResults(data) {
       <div class="results-body">
         <p>${data.reflection}</p>
         <p style="color:var(--text-meta);font-style:italic;">${data.stage_note}</p>
+        ${data.larger_note ? `<p style="color:var(--text-meta);font-style:italic;margin-top:8px;border-top:1px solid var(--gold-rule);padding-top:12px;">${data.larger_note}</p>` : ""}
       </div>
     </div>
 
@@ -660,6 +816,35 @@ function renderResults(data) {
 
   chatContainer.appendChild(card);
   messages.push({ role: "assistant", content: JSON.stringify(data) });
+
+  // Sign-in prompt — only shown if not already signed in
+  if (!currentUser) {
+    const signinPrompt = document.createElement("div");
+    signinPrompt.className = "signin-prompt";
+
+    // Check if any recommendation is a Life OS tool — if so, tailor the message
+    const hasToolRec = data.recommendations?.some(r => r.category === "Life OS Tool");
+    const promptMsg  = hasToolRec
+      ? "Create your account to carry this forward — into the tools and the larger work they point toward."
+      : "Your place in this is worth remembering. Create your account to come back to it.";
+
+    signinPrompt.innerHTML = `
+      <div class="signin-prompt-inner">
+        <span class="signin-eyebrow">Your Place in This</span>
+        <p class="signin-body">${promptMsg}</p>
+        <a href="https://nextus.world/login?redirect=${encodeURIComponent(window.location.href)}" class="nk-btn signin-cta">Create your account →</a>
+        <p class="signin-skip">Already have an account? <a href="https://nextus.world/login?redirect=${encodeURIComponent(window.location.href)}" style="color:var(--gold);text-decoration:none;">Sign in</a></p>
+      </div>
+    `;
+    chatContainer.appendChild(signinPrompt);
+  }
+
+  // Restart link
+  const restart = document.createElement("div");
+  restart.style.cssText = "text-align:center;margin-top:16px;padding-bottom:16px;";
+  restart.innerHTML = `<button onclick="restartFn()" style="font-family:var(--serif);font-size:14px;font-style:italic;color:var(--text-ghost);background:none;border:none;cursor:pointer;border-bottom:1px solid rgba(15,21,35,0.15);padding:0 0 1px;transition:color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-ghost)'">Start again →</button>`;
+  chatContainer.appendChild(restart);
+
   scrollToBottom();
 }
 
