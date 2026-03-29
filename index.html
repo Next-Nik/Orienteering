@@ -45,7 +45,7 @@
     .container {
       max-width: 640px;
       margin: 0 auto;
-      padding: 48px 24px 140px;
+      padding: 112px 24px 140px;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -513,8 +513,27 @@
       color: var(--text-ghost);
     }
 
+
+    /* ── SITE NAV ── */
+    .nk-nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(200,146,42,0.20);}
+    .nk-nav-inner{max-width:1040px;margin:0 auto;padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:64px;}
+    .nk-nav-logo img{height:34px;width:auto;display:block;}
+    .nk-nav-links{display:flex;align-items:center;gap:28px;}
+    .nk-nav-links a{font-family:var(--serif-sc);font-size:13px;letter-spacing:0.10em;color:var(--text-meta);text-decoration:none;transition:color 0.2s;}
+    .nk-nav-links a:hover{color:var(--text-head);}
+    .nk-nav-links a.active{color:var(--gold);}
+    .nk-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px;}
+    .nk-hamburger span{display:block;width:22px;height:1.5px;background:var(--text-meta);border-radius:1px;}
+    .nk-mobile-menu{display:none;flex-direction:column;background:#FFF;border-bottom:1px solid rgba(200,146,42,0.20);padding:8px 0;}
+    .nk-mobile-menu.open{display:flex;}
+    .nk-mobile-menu a{font-family:var(--serif-sc);font-size:13px;letter-spacing:0.10em;color:var(--text-head);text-decoration:none;padding:14px 32px;border-bottom:1px solid var(--gold-faint);}
+    .nk-profile-dot{width:32px;height:32px;border-radius:50%;background:var(--gold-bg);border:1.5px solid var(--gold-border);display:flex;align-items:center;justify-content:center;font-family:var(--serif-sc);font-size:13px;font-weight:600;color:var(--gold);text-decoration:none;flex-shrink:0;transition:all 0.2s;}
+    .nk-profile-dot:hover{background:rgba(200,146,42,0.08);border-color:var(--gold-hi);transform:translateY(-1px);}
+    body{padding-top:64px;}
+    @media(max-width:640px){.nk-nav-inner{padding:0 24px;}.nk-nav-links{display:none;}.nk-hamburger{display:flex;}}
+
     @media (max-width: 640px) {
-      .container { padding: 36px 18px 130px; }
+      .container { padding: 100px 18px 130px; }
       .header h1 { font-size: 32px; }
       .entry-card { padding: 28px 20px; }
       .results-section { padding: 20px 20px; }
@@ -524,6 +543,31 @@
   </style>
 </head>
 <body>
+
+<nav class="nk-nav">
+  <div class="nk-nav-inner">
+    <a href="https://nextus.world/index.html" class="nk-nav-logo"><img src="https://nextus.world/logo_nav.png" alt="NextUs"></a>
+    <div class="nk-nav-links">
+      <a href="https://nextus.world/index.html">Home</a>
+      <a href="https://nextus.world/life-os.html" class="active">Life OS</a>
+      <a href="https://nextus.world/nextus.html">NextUs</a>
+      <a href="https://nextus.world/work-with-nik.html">Work with Nik</a>
+      <a href="https://nextus.world/about.html">About</a>
+      <a href="https://nextus.world/podcast.html">Podcast</a>
+    </div>
+    <a href="https://nextus.world/login.html" class="nk-profile-dot" id="nk-profile-dot" title="Sign in" style="display:none;">→</a>
+    <button class="nk-hamburger" aria-label="Menu" onclick="this.classList.toggle('open');document.getElementById('nk-mob-or').classList.toggle('open');"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div id="nk-mob-or" class="nk-mobile-menu">
+  <a href="https://nextus.world/index.html">Home</a>
+  <a href="https://nextus.world/life-os.html">Life OS</a>
+  <a href="https://nextus.world/nextus.html">NextUs</a>
+  <a href="https://nextus.world/work-with-nik.html">Work with Nik</a>
+  <a href="https://nextus.world/about.html">About</a>
+  <a href="https://nextus.world/podcast.html">Podcast</a>
+  <a href="https://nextus.world/login.html">Sign in →</a>
+</div>
 
 <div class="container">
 
@@ -572,21 +616,24 @@
   window.SUPABASE_URL      = "https://tphbpwzozkskytoichho.supabase.co";
   window.SUPABASE_ANON_KEY = "sb_publishable_M00GF1FWV5tgKHqmyRCZag_kJjgBJn-";
 </script>
+<script src="/auth-init.js"></script>
 <script>
-// ── SESSION (silent — no redirect) ───────────────────────────────────────────
+// ── SESSION — reads from auth-init.js ─────────────────────────────────────────
 let currentUser = null;
 
-(async function checkSession() {
-  try {
-    const sb = window.supabase?.createClient(
-      window.SUPABASE_URL,
-      window.SUPABASE_ANON_KEY
-    );
-    if (!sb) return;
-    const { data: { session } } = await sb.auth.getSession();
-    if (session?.user) currentUser = session.user;
-  } catch {}
-})();
+window.addEventListener('lifeos:auth', function(e) {
+  var user = e.detail && e.detail.user;
+  currentUser = user || null;
+  // Update profile dot
+  var dot = document.getElementById('nk-profile-dot');
+  if (dot && user) {
+    var initial = ((user.email||'').split('@')[0].charAt(0)||'?').toUpperCase();
+    dot.textContent = initial;
+    dot.href = 'https://nextus.world/profile.html';
+    dot.title = 'Your profile';
+    dot.style.display = 'flex';
+  }
+}, { once: true });
 
 // ── TOOL LINKS ───────────────────────────────────────────────────────────────
 const TOOL_LINKS = {
@@ -832,8 +879,8 @@ function renderResults(data) {
       <div class="signin-prompt-inner">
         <span class="signin-eyebrow">Your Place in This</span>
         <p class="signin-body">${promptMsg}</p>
-        <a href="https://nextus.world/login?redirect=${encodeURIComponent(window.location.href)}" class="nk-btn signin-cta">Create your account →</a>
-        <p class="signin-skip">Already have an account? <a href="https://nextus.world/login?redirect=${encodeURIComponent(window.location.href)}" style="color:var(--gold);text-decoration:none;">Sign in</a></p>
+        <a href="https://nextus.world/login.html?redirect=${encodeURIComponent(window.location.href)}" class="nk-btn signin-cta">Create your account →</a>
+        <p class="signin-skip">Already have an account? <a href="https://nextus.world/login.html?redirect=${encodeURIComponent(window.location.href)}" style="color:var(--gold);text-decoration:none;">Sign in</a></p>
       </div>
     `;
     chatContainer.appendChild(signinPrompt);
