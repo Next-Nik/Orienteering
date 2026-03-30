@@ -22,7 +22,7 @@
       --text-head:    #0F1523;
       --text-body:    #0F1523;
       --text-meta:    rgba(15,21,35,0.78);
-      --text-ghost:   rgba(15,21,35,0.55);
+      --text-ghost:   rgba(15,21,35,0.72);
       --serif:        'Cormorant Garamond', Georgia, serif;
       --serif-sc:     'Cormorant SC', Georgia, serif;
       --card-bg:      #FFFFFF;
@@ -257,7 +257,7 @@
     }
 
     #user-input:focus { border-color: var(--gold-hi); }
-    #user-input::placeholder { color: rgba(15,21,35,0.30); font-style: italic; }
+    #user-input::placeholder { color: rgba(15,21,35,0.72); font-style: normal; }
     #user-input:disabled { opacity: 0.4; }
 
     #send-btn {
@@ -846,8 +846,8 @@ function renderResults(data) {
       <span class="results-section-label">What I Heard</span>
       <div class="results-body">
         <p>${data.reflection}</p>
-        <p style="color:var(--text-meta);font-style:italic;">${data.stage_note}</p>
-        ${data.larger_note ? `<p style="color:var(--text-meta);font-style:italic;margin-top:8px;border-top:1px solid var(--gold-rule);padding-top:12px;">${data.larger_note}</p>` : ""}
+        <p style="color:var(--text-meta);">${data.stage_note}</p>
+        ${data.larger_note ? `<p style="color:var(--text-meta);margin-top:8px;border-top:1px solid var(--gold-rule);padding-top:12px;">${data.larger_note}</p>` : ""}
       </div>
     </div>
 
