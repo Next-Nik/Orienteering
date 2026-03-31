@@ -572,21 +572,12 @@
 <div class="container">
 
   <header class="header">
-    <img src="/logo.png" alt="Life OS" class="logo" />
-    <h1><span class="header-prefix">Life OS: </span>Orienteering</h1>
-    <p class="header-sub">Find your place in the larger picture.</p>
+    <img src="https://nextus.world/logo_nav.png" alt="Life OS" class="logo" />
+    <p class="header-sub">Not sure where to start? Tell me a little about where you are right now.</p>
   </header>
 
-  <!-- Entry screen -->
-  <div id="welcome-screen">
-    <div class="entry-card">
-      <p class="entry-body">A short conversation to understand where you actually are — and what you might need to show up more fully for what life is asking of you. No scores. No assessment. Just an honest look.</p>
-      <button class="nk-btn" id="begin-btn">Begin</button>
-    </div>
-  </div>
-
-  <!-- Chat area -->
-  <div id="chat-area" style="display:none; flex-direction:column; flex:1;">
+  <!-- Chat area — visible immediately, auto-starts -->
+  <div id="chat-area" style="display:flex; flex-direction:column; flex:1;">
     <div id="chat-container"></div>
     <div class="typing-indicator" id="typing-indicator">
       <div class="typing-dot"></div>
@@ -598,7 +589,7 @@
 </div>
 
 <!-- Input area -->
-<div class="input-area" id="input-area" style="display:none;">
+<div class="input-area" id="input-area" style="display:block;">
   <div class="input-inner">
     <textarea
       id="user-input"
@@ -661,7 +652,6 @@ const sendBtn         = document.getElementById("send-btn");
 const beginBtn        = document.getElementById("begin-btn");
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
-beginBtn.addEventListener("click", startConversation);
 sendBtn.addEventListener("click", sendUserInput);
 userInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendUserInput(); }
@@ -671,21 +661,23 @@ userInput.addEventListener("input", () => {
   userInput.style.height = Math.min(userInput.scrollHeight, 120) + "px";
 });
 
+// Auto-start — no gate, conversation begins immediately
+startConversation();
+
 // ── START ────────────────────────────────────────────────────────────────────
 async function startConversation() {
-  welcomeScreen.style.display = "none";
-  chatArea.style.display      = "flex";
-  inputArea.style.display     = "";
-  showNavBar();
   showTyping();
+  disableInput();
 
   try {
     const data = await callAPI([]);
     hideTyping();
     addAssistantMessage(data.message);
+    enableInput();
   } catch {
     hideTyping();
     addAssistantMessage("Something went quiet on my end. Try refreshing.");
+    enableInput();
   }
 }
 
