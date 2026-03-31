@@ -82,6 +82,11 @@ For all other turns, respond as plain conversational text. Never mention JSON or
 IMPORTANT: Never recommend more than 2 Life OS tools. Always include at least one non-tool recommendation. NextUs counts separately — it is the civilisational layer, not a personal development product. Never make someone feel they are being routed. They are being seen.`;
 
 module.exports = async (req, res) => {
+  // CORS — allow nextus.world and local dev to call this API
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   const { messages = [] } = req.body;
